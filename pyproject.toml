@@ -1,0 +1,18 @@
+[project]
+name = "platelet-hyperactivation"
+version = "1.0.0"
+description = "Statistical analysis for the platelet hyperactivation imaging flow cytometry study"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.5.1",
+    "pandas>=3.0.5",
+    "pyarrow>=25.0.0",
+    "scipy>=1.18.0",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
