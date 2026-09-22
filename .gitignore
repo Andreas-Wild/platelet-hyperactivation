@@ -1,6 +1,7 @@
 # Feature tables are too large for plain git; they are distributed alongside
 # the publication as a separate archive (see README).
 data/**/*.parquet
+*.tar
 *.tar.gz
 temp/
 

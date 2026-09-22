@@ -151,22 +151,14 @@ def marker_gates(method: str, donors: Sequence[str]) -> dict[str, float]:
     }
 
 
-def object_table(method: str, donor: str, gates: dict[str, float]) -> pd.DataFrame:
-    """One row per segmented object for a donor, with its population.
+def object_labels(cols: dict[str, np.ndarray]) -> np.ndarray:
+    """Each mask's object label; masks at most one pixel apart share an object.
 
-    Masks lying at most one pixel apart are grouped into a single object. An
-    object of two or more real masks is an aggregate; an object of one real mask
-    takes that mask's population. An object's area is the summed footprint of
-    its masks (an aggregate's true size); its marker intensity is the mean over
-    its masks, so a many-cell clump is not over-weighted by its own mask count.
+    Resolves `connected_to` into a graph whose connected components are the
+    objects. A mask is addressed by (event, instance); packing that into one
+    sortable key lets neighbour references resolve to row positions with a
+    binary search.
     """
-    cols = _read(method, donor, _OBJECT_COLUMNS)
-    real, rbc_like, platelet_like = _classify_masks(cols, gates["PAC1"], gates["CD62"])
-
-    # Resolve `connected_to` into a graph whose connected components are the
-    # objects. A mask is addressed by (event, instance); pack that into one
-    # sortable key so neighbour references resolve to row positions with a
-    # binary search.
     event_id = cols["event_id"]
     instance_number = cols["instance_number"]
     n_masks = event_id.size
@@ -185,12 +177,25 @@ def object_table(method: str, donor: str, gates: dict[str, float]) -> pd.DataFra
         (np.ones(sources.size, dtype=np.int8), (sources, order[positions])),
         shape=(n_masks, n_masks),
     )
-    n_objects, labels = connected_components(graph, directed=False, return_labels=True)
+    _, labels = connected_components(graph, directed=False, return_labels=True)
+    return labels
 
-    def total(weights: np.ndarray | None = None) -> np.ndarray:
+
+def object_populations(
+    cols: dict[str, np.ndarray], gates: dict[str, float]
+) -> tuple[np.ndarray, np.ndarray]:
+    """Each mask's object label, and each object's population code.
+
+    An object of two or more real masks is an aggregate; an object of one real
+    mask takes that mask's population. Codes index `_POPULATION_LEVELS`.
+    """
+    real, rbc_like, platelet_like = _classify_masks(cols, gates["PAC1"], gates["CD62"])
+    labels = object_labels(cols)
+    n_objects = int(labels.max()) + 1
+
+    def total(weights: np.ndarray) -> np.ndarray:
         return np.bincount(labels, weights=weights, minlength=n_objects)
 
-    masks_per_object = total()
     n_real, n_rbc, n_platelet = total(real), total(rbc_like), total(platelet_like)
 
     codes = np.zeros(n_objects, dtype=np.int8)  # 0 = irregular
@@ -198,6 +203,26 @@ def object_table(method: str, donor: str, gates: dict[str, float]) -> pd.DataFra
     codes[single & (n_platelet == 1)] = 1
     codes[single & (n_rbc == 1)] = 2
     codes[n_real >= 2] = 3
+    return labels, codes
+
+
+def object_table(method: str, donor: str, gates: dict[str, float]) -> pd.DataFrame:
+    """One row per segmented object for a donor, with its population.
+
+    Masks lying at most one pixel apart are grouped into a single object. An
+    object of two or more real masks is an aggregate; an object of one real mask
+    takes that mask's population. An object's area is the summed footprint of
+    its masks (an aggregate's true size); its marker intensity is the mean over
+    its masks, so a many-cell clump is not over-weighted by its own mask count.
+    """
+    cols = _read(method, donor, _OBJECT_COLUMNS)
+    labels, codes = object_populations(cols, gates)
+    n_objects = codes.size
+
+    def total(weights: np.ndarray | None = None) -> np.ndarray:
+        return np.bincount(labels, weights=weights, minlength=n_objects)
+
+    masks_per_object = total()
 
     return pd.DataFrame(
         {

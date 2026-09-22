@@ -12,6 +12,11 @@ stepped through in a REPL or run top to bottom). It takes about ten seconds.
 ```sh
 uv run python main.py
 ```
+If you are a `pip` user, activate your `.venv` and install the `pyproject.toml` using
+
+```sh
+pip install -e .
+```
 
 Results are printed and written as CSVs to `output/`.
 
@@ -28,14 +33,17 @@ with one file per donor under each of the four preparation methods
 per segmented mask and 83 image features; only the columns each step needs are
 read.
 
-Donors imaged under all four methods form the analysis set (n = 19; 11 control,
-8 PASC). The secondary analysis blocks on donor, so a donor missing from any
-method is excluded from all of them.
+Donors imaged under all four methods form the analysis set (n = 20; 11 control,
+9 PASC). The secondary analysis blocks on donor, so a donor missing from any
+method is excluded from all of them — currently C63, which has no `new_method`
+acquisition.
 
 `donors.csv` carries the two quantities that are not per-cell image features and
 so are absent from the parquet files: each donor's cohort, and the sample volume
 imaged under each method. Volume is what turns a count into the primary
-endpoint.
+endpoint. It is transcribed from the `sample_volume_uL` root attribute of each
+acquisition's HDF5 file, so when a donor is added, that is where its four
+volumes come from.
 
 ## What is computed
 
@@ -60,9 +68,11 @@ exploratory. Each is compared between cohorts with an unpaired, two-sided
 Mann–Whitney U test and reported with Cliff's δ, interpreted on the thresholds
 of Romano et al. (negligible / small / medium / large). The donor is the unit of
 analysis — cell features are collapsed to one number per donor before any test
-runs, so cells are never treated as independent observations. p-values are
-Benjamini–Hochberg corrected across the four endpoints, i.e. one family per
-method × population. A positive δ means the endpoint is higher in PASC.
+runs, so cells are never treated as independent observations. The primary
+endpoint is its own family: the concentrations of the three populations under
+`new_method`, Benjamini–Hochberg corrected across those three. Every other
+p-value is corrected across the four endpoints, i.e. one family per method ×
+population. A positive δ means the endpoint is higher in PASC.
 
 **Secondary analysis.** Whether the four preparation methods stain equally well.
 Median and 95th-percentile PAC1 and CD62 intensities are compared across methods
@@ -70,6 +80,14 @@ with a Friedman test blocked on donor, followed by post hoc pairwise two-sided
 Wilcoxon signed-rank tests. p-values are BH corrected across populations,
 markers, and summary statistics jointly — one family for the omnibus tests, one
 for the post hoc tests.
+
+**Platelet hyperactivation.** Whether the cohorts differ in marker intensity
+under `new_method`. The endpoint is the same per-donor summary the secondary
+analysis uses — each donor's median and 95th-percentile PAC1 and CD62 intensity
+— compared between cohorts with an unpaired, two-sided Mann–Whitney U test and
+reported with Cliff's δ. p-values are BH corrected across populations, markers
+and summary statistics jointly, one family of twelve. A positive δ means the
+intensity is higher in PASC.
 
 ## Outputs
 
@@ -84,6 +102,24 @@ them is the section above rather than repeated there.
 | `staining_friedman.csv` | Friedman χ² and BH-corrected p across the four methods |
 | `staining_pairwise.csv` | post hoc pairwise Wilcoxon signed-rank tests |
 | `marker_gates.csv` | the PAC1/CD62 positivity thresholds used for each method |
+| `activation_stats.csv` | hyperactivation: Mann–Whitney p, Cliff's δ, BH-corrected p |
+
+## Other scripts
+
+Each script reproduces one part of the paper. The first four need only the
+feature tables; the last four also need the raw acquisition files, which are not
+distributed.
+
+| script | reproduces |
+| --- | --- |
+| `scratch.py` | the endpoint tables, from `endpoints_stats.csv` |
+| `separation_table.py` | the sample-preparation table |
+| `graphs.py` | the concentration and activation box plots |
+| `inter_annotator.py` | the classifier against the human annotators: both validation sets, with Wilson intervals |
+| `paper_numbers.py` | the in-text numbers no table carries, and the minimum detectable effect |
+| `hand_label.py` | the 3000-image validation set; `--score` gives its agreement |
+| `validation_sample.py` | the 50-image inter-annotator panel |
+| `representative_cells.py` | the representative-event figures |
 
 ## Not included
 
