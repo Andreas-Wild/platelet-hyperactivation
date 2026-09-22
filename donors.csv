@@ -13,6 +13,7 @@ new_method,C65,control,13.28727969
 new_method,LV971,pasc,13.06886953
 new_method,LV972,pasc,12.98150547
 new_method,LV974,pasc,13.02915859
+new_method,LV975,pasc,12.98150547
 new_method,LV976,pasc,13.06489844
 new_method,LV977,pasc,13.06886953
 new_method,LV978,pasc,12.98547656
@@ -33,6 +34,7 @@ normal_method,C65,control,4.68986172
 normal_method,LV971,pasc,5.03137578
 normal_method,LV972,pasc,4.72560156
 normal_method,LV974,pasc,5.46422500
+normal_method,LV975,pasc,4.68589062
 normal_method,LV976,pasc,4.77325469
 normal_method,LV977,pasc,13.20388672
 normal_method,LV978,pasc,5.07505781
@@ -53,6 +55,7 @@ prp,C65,control,9.45914531
 prp,LV971,pasc,4.64617969
 prp,LV972,pasc,3.65737734
 prp,LV974,pasc,13.02915859
+prp,LV975,pasc,13.15623359
 prp,LV976,pasc,4.47145156
 prp,LV977,pasc,1.03248437
 prp,LV978,pasc,12.98150547
@@ -73,6 +76,7 @@ whole_blood,C65,control,7.99778281
 whole_blood,LV971,pasc,9.76491953
 whole_blood,LV972,pasc,10.01509844
 whole_blood,LV974,pasc,7.83496797
+whole_blood,LV975,pasc,9.28838828
 whole_blood,LV976,pasc,9.28838828
 whole_blood,LV977,pasc,13.11255156
 whole_blood,LV978,pasc,13.02915859
