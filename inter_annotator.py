@@ -2,13 +2,12 @@
 
 Two validation sets, both drawn from `new_method`:
 
-  * the 3000-image set labelled by annotator 1 alone (`hand_label.py`), scored
-    here only for the Wilson interval of its agreement -- `hand_label.py --score`
-    gives the rest;
-  * the 50-image panel labelled independently by five annotators
-    (`validation_sample.py`), scored in full: agreement and Cohen's kappa for
-    every pair of raters, Fleiss' kappa with and without the classifier as a
-    sixth rater, and the classifier against the human majority consensus.
+  * the 3000-image set labelled by annotator 1 alone, scored here only for the
+    Wilson interval of its agreement;
+  * the 50-image panel labelled independently by five annotators, scored in
+    full: agreement and Cohen's kappa for every pair of raters, Fleiss' kappa
+    with and without the classifier as a sixth rater, and the classifier
+    against the human majority consensus.
 
 A rater who left a tile blank is dropped from the pairs involving that tile, and
 Fleiss' kappa uses only the tiles every rater answered.
