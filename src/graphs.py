@@ -1,5 +1,20 @@
+"""The box plots of the paper: concentration and platelet activation by cohort.
+
+Reads the per-donor CSVs that `main.py` writes, so run that first. One vector
+PDF per figure lands in `output/`:
+
+    obj_per_uL_<population>_new_method.pdf    primary endpoint, one per population
+    median_<marker>_platelet_new_method.pdf   per-donor median PAC-1 / CD62P
+
+    uv run src/graphs.py
+"""
+
 import matplotlib.pyplot as plt
 import pandas as pd
+
+import utils
+
+OUTPUT_DIR = utils.ROOT / "output"
 
 METHOD = "new_method"
 ENDPOINT = "obj_per_uL"
@@ -49,7 +64,7 @@ def boxplot(groups, color, ylabel, filename, legend=False):
 
 # %% Primary endpoint -- concentration, one figure per population
 
-df = pd.read_csv("output/endpoints_per_donor.csv")
+df = pd.read_csv(OUTPUT_DIR / "endpoints_per_donor.csv")
 df = df[df["method"] == METHOD]
 
 for population, color in POP_COLORS.items():
@@ -58,14 +73,14 @@ for population, color in POP_COLORS.items():
         [df_pop[df_pop["cohort"] == c][ENDPOINT] for c in COHORTS],
         color,
         "Objects per µL",
-        f"output/{ENDPOINT}_{population}_{METHOD}.pdf",
+        OUTPUT_DIR / f"{ENDPOINT}_{population}_{METHOD}.pdf",
         legend=population == "rbc",
     )
 
 
 # %% Activation -- per-donor median platelet intensity, one figure per marker
 
-activation = pd.read_csv("output/staining_per_donor.csv")
+activation = pd.read_csv(OUTPUT_DIR / "staining_per_donor.csv")
 activation = activation[
     (activation["method"] == METHOD)
     & (activation["population"] == "platelet")
@@ -78,6 +93,6 @@ for marker in MARKERS:
         [df_marker[df_marker["cohort"] == c]["value"] for c in COHORTS],
         POP_COLORS["platelet"],
         f"Median {MARKER_LABELS[marker]} intensity (a.u.)",
-        f"output/{STATISTIC}_{marker}_platelet_{METHOD}.pdf",
+        OUTPUT_DIR / f"{STATISTIC}_{marker}_platelet_{METHOD}.pdf",
         legend=marker == MARKERS[0],
     )

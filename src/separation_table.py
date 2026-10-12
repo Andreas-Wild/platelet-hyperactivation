@@ -1,6 +1,6 @@
 """Turn the per-donor staining and endpoint CSVs into the sample-preparation table.
 
-Same shape as `scratch.py`: the config cell is the part you edit, the rest
+Same shape as `endpoints_table.py`: the config cell is the part you edit, the rest
 applies it. Run top to bottom and the table lands in
 `output/separation_table.tex`; \\input it from the report.
 
@@ -26,7 +26,7 @@ interquartile range. A ratio of medians is not the median of ratios, and the
 per-donor form is the one that matches how the ratios are argued.
 
 Preamble needs `\\usepackage{booktabs}` and `\\usepackage{siunitx}`; see the
-fontenc warning at the top of `scratch.py`.
+fontenc warning at the top of `endpoints_table.py`.
 """
 
 # %% Imports

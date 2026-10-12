@@ -17,3 +17,9 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+# The scripts in src/ are run directly, not imported as a package; this lets
+# `pip install .` install the dependencies without installing src/ modules
+# under generic names such as `utils`.
+[tool.setuptools]
+py-modules = []

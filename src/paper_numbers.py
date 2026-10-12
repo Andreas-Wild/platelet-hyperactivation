@@ -5,7 +5,7 @@ writes, `acquisitions.csv` and the feature tables, plus one simulation: the
 smallest Cliff's delta the Mann-Whitney U test detects with 80% power at the
 group sizes of the study. Run `main.py` first.
 
-    uv run paper_numbers.py
+    uv run src/paper_numbers.py
 """
 
 from __future__ import annotations

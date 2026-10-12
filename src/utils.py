@@ -20,7 +20,8 @@ import pyarrow.parquet as pq
 from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import connected_components
 
-ROOT = Path(__file__).resolve().parent
+#: The repository root; this file lives in `src/`.
+ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 DONORS_CSV = ROOT / "donors.csv"
 

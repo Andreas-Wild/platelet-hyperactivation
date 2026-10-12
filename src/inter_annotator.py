@@ -9,7 +9,7 @@ Two validation sets, both drawn from `new_method`:
     classifier as a sixth rater, and the classifier against the human majority
     consensus.
 
-    uv run inter_annotator.py
+    uv run src/inter_annotator.py
 
 Reads the labels in `validation/`. Prints the scores and writes them to
 `output/validation_scores.txt`.
