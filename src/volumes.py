@@ -1,7 +1,18 @@
+"""Mean and SD of the imaged sample volume per method and cohort, as LaTeX rows.
+
+Prints one `method&cohort&mean&sd` row each, for the volume table of the paper.
+Covers the analysis set of `main.py`: the donors imaged under all four methods.
+
+    uv run src/volumes.py
+"""
+
 import pandas as pd
 
-df = pd.read_csv("donors.csv")
-df = df[df["donor"]!="C1"]
+import utils
+
+df = pd.read_csv(utils.DONORS_CSV)
+donors_per_method = (set(group["donor"]) for _, group in df.groupby("method"))
+df = df[df["donor"].isin(set.intersection(*donors_per_method))]
 
 methods = {
 "new_method": df[df["method"]=="new_method"],

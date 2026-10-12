@@ -9,3 +9,13 @@ output/
 .venv/
 __pycache__/
 .ruff_cache/
+*.egg-info/
+build/
+
+# Scripts that need the raw acquisition (HDF5) files, which are not shipped:
+# drawing the validation sets and preparing the image figures. Their results
+# are in validation/ and acquisitions.csv.
+src/validation_sample.py
+src/hand_label.py
+src/representative_cells.py
+src/scale_bar_labels.py

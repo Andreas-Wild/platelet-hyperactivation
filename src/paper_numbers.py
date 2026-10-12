@@ -1,28 +1,29 @@
 """The in-text numbers of the paper that no table carries.
 
 Everything here is descriptive, read from the per-donor CSVs that `main.py`
-writes, the acquisition files and the feature tables, plus one simulation: the
+writes, `acquisitions.csv` and the feature tables, plus one simulation: the
 smallest Cliff's delta the Mann-Whitney U test detects with 80% power at the
 group sizes of the study. Run `main.py` first.
 
-    uv run paper_numbers.py
+    uv run src/paper_numbers.py
 """
 
 from __future__ import annotations
 
 import glob
 
-import h5py
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 from scipy import stats
 
 import utils
-from validation_sample import find_h5
 
 METHOD = "new_method"
 OUTPUT_DIR = utils.ROOT / "output"
+#: Events acquired per HPO sample, read once from the `n_events` attribute of each
+#: raw acquisition file, which is not distributed.
+ACQUISITIONS_CSV = utils.ROOT / "acquisitions.csv"
 
 #: Power simulation: two-sided alpha, target power, draws per effect size.
 ALPHA, POWER, N_SIMULATIONS, SEED = 0.05, 0.80, 4000, 20260922
@@ -36,20 +37,12 @@ def common_donors() -> list[str]:
 
 def acquisition() -> None:
     """Events per HPO sample and the acquired volumes."""
-    donors = common_donors()
-    events = []
-    try:
-        for donor in donors:
-            with h5py.File(find_h5(donor, METHOD), "r") as handle:
-                events.append(int(handle.attrs["n_events"]))
-    except FileNotFoundError:
-        # The raw acquisitions are not distributed with the feature tables.
-        print("HPO events per sample: needs the raw acquisition files, skipped")
-        return
+    acquisitions = pd.read_csv(ACQUISITIONS_CSV).query("method == @METHOD")
+    events = acquisitions.set_index("donor")["n_events"].reindex(common_donors())
     volumes = pd.read_csv(utils.DONORS_CSV).query("method == @METHOD")["volume_uL"]
     print(
         f"HPO events per sample: median {np.median(events):.0f}, "
-        f"range {min(events)} to {max(events)} (n={len(events)})"
+        f"range {events.min()} to {events.max()} (n={events.count()})"
     )
     print(f"HPO acquired volume: {volumes.min():.2f} to {volumes.max():.2f} uL")
 

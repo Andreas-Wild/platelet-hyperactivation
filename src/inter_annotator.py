@@ -2,20 +2,17 @@
 
 Two validation sets, both drawn from `new_method`:
 
-  * the 3000-image set labelled by annotator 1 alone (`hand_label.py`), scored
-    here only for the Wilson interval of its agreement -- `hand_label.py --score`
-    gives the rest;
-  * the 50-image panel labelled independently by five annotators
-    (`validation_sample.py`), scored in full: agreement and Cohen's kappa for
-    every pair of raters, Fleiss' kappa with and without the classifier as a
-    sixth rater, and the classifier against the human majority consensus.
+  * the 3000-image set labelled by annotator 1 alone: agreement with its Wilson
+    interval, Cohen's kappa and macro-averaged precision, recall and F1;
+  * the 50-image panel labelled independently by five annotators: agreement and
+    Cohen's kappa for every pair of raters, Fleiss' kappa with and without the
+    classifier as a sixth rater, and the classifier against the human majority
+    consensus.
 
-A rater who left a tile blank is dropped from the pairs involving that tile, and
-Fleiss' kappa uses only the tiles every rater answered.
+    uv run src/inter_annotator.py
 
-    uv run inter_annotator.py
-
-Prints the scores and writes them to `output/hand_labels/validation/scores.txt`.
+Reads the labels in `validation/`. Prints the scores and writes them to
+`output/validation_scores.txt`.
 """
 
 from __future__ import annotations
@@ -31,9 +28,13 @@ from scipy import stats
 import utils
 
 CLASSES = ("platelet", "rbc", "aggregate")
+#: A tile a rater left blank is scored as an error: this label matches no rater.
+BLANK = "unlabelled"
+CATEGORIES = (*CLASSES, BLANK)
 
-HAND_LABELS = utils.ROOT / "output" / "hand_labels"
-PANEL_DIR = HAND_LABELS / "validation"
+VALIDATION_DIR = utils.ROOT / "validation"
+HAND_LABELS = VALIDATION_DIR / "labelled_3000"
+PANEL_DIR = VALIDATION_DIR / "panel_50"
 #: Annotator N's answers are in `answers/annotator_N.csv`. Annotator 1 also
 #: labelled the 3000-image set.
 ANNOTATORS = tuple(f"annotator_{i}" for i in range(1, 6))
@@ -52,18 +53,15 @@ def wilson(successes: int, n: int, confidence: float = 0.95) -> tuple[float, flo
 
 
 def cohen_kappa(a: pd.Series, b: pd.Series) -> float:
-    """Cohen's kappa of two raters over the tiles both answered."""
-    both = a.notna() & b.notna()
-    a, b = a[both], b[both]
+    """Cohen's kappa of two raters over all tiles."""
     observed = (a == b).mean()
-    expected = sum((a == c).mean() * (b == c).mean() for c in CLASSES)
+    expected = sum((a == c).mean() * (b == c).mean() for c in CATEGORIES)
     return (observed - expected) / (1 - expected)
 
 
 def fleiss_kappa(ratings: pd.DataFrame) -> float:
-    """Fleiss' kappa over the tiles (rows) every rater (column) answered."""
-    ratings = ratings.dropna()
-    counts = np.stack([(ratings == c).sum(axis=1).to_numpy() for c in CLASSES], 1)
+    """Fleiss' kappa over all tiles (rows) and raters (columns)."""
+    counts = np.stack([(ratings == c).sum(axis=1).to_numpy() for c in CATEGORIES], 1)
     n_raters = ratings.shape[1]
     per_tile = ((counts * (counts - 1)).sum(axis=1)) / (n_raters * (n_raters - 1))
     p_class = counts.sum(axis=0) / counts.sum()
@@ -100,7 +98,7 @@ def panel() -> pd.DataFrame:
             PANEL_DIR / "answers" / f"annotator_{i}.csv", skipinitialspace=True
         ).set_index("image_number")["class"]
         answers = answers.str.strip().str.lower().where(lambda s: s.isin(CLASSES))
-        table[name] = answers.reindex(table.index)
+        table[name] = answers.reindex(table.index).fillna(BLANK)
     return table[[*ANNOTATORS, "model"]]
 
 
@@ -124,6 +122,12 @@ def report() -> None:
     print(f"labelled {n} of {len(key)} drawn; {len(key) - n} judged not a valid event")
     print(f"agreement {agree}/{n} = {agree / n:.1%}", end="  ")
     print(f"95% Wilson CI {low:.1%} to {high:.1%}")
+    print(f"Cohen's kappa {cohen_kappa(labels, model):.3f}")
+    macro = per_class(labels, model)[["precision", "recall", "f1"]].mean()
+    print(
+        f"macro-averaged precision {macro['precision']:.2f}, "
+        f"recall {macro['recall']:.2f}, F1 {macro['f1']:.2f}"
+    )
     print(
         f"agreement over all {len(key)}, unlabelled counted as errors: "
         f"{agree / len(key):.1%}\n"
@@ -141,8 +145,7 @@ def report() -> None:
     raters = [*ANNOTATORS, "model"]
     pairs = pd.DataFrame(index=raters, columns=raters, dtype=float)
     for a, b in itertools.combinations(raters, 2):
-        both = table[a].notna() & table[b].notna()
-        pairs.loc[a, b] = (table.loc[both, a] == table.loc[both, b]).mean()
+        pairs.loc[a, b] = (table[a] == table[b]).mean()
         pairs.loc[b, a] = cohen_kappa(table[a], table[b])
     print("pairwise agreement (upper) / Cohen's kappa (lower)")
     print(pairs.round(3).fillna(1.0).to_string(), "\n")
@@ -160,7 +163,7 @@ def report() -> None:
         f"kappa {min(hk):.3f} to {max(hk):.3f}"
     )
     print(f"mean pairwise human-model: agreement {hm_agree:.3f}, kappa {hm_kappa:.3f}")
-    complete = humans.dropna().shape[0]
+    complete = len(humans)
     print(
         f"Fleiss' kappa, 5 humans:         {fleiss_kappa(humans):.3f}  (n={complete})"
     )
@@ -187,4 +190,5 @@ if __name__ == "__main__":
         report()
     text = buffer.getvalue()
     print(text, end="")
-    (PANEL_DIR / "scores.txt").write_text(text)
+    (utils.ROOT / "output").mkdir(exist_ok=True)
+    (utils.ROOT / "output" / "validation_scores.txt").write_text(text)

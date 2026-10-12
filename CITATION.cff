@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+message: >-
+  If you use this code, please cite the article below. The feature tables are
+  cited separately by their Zenodo DOI.
+title: "platelet-hyperactivation: analysis code"
+type: software
+version: 1.0.0
+license: MIT
+repository-code: "https://github.com/Andreas-Wild/platelet-hyperactivation"
+authors:
+  - family-names: Wild
+    given-names: A.G.
+    affiliation: Institute for Biomedical Engineering, Stellenbosch University
+references:
+  - type: data
+    title: Per-object image features of the platelet hyperactivation imaging flow cytometry study
+    doi: 10.5281/zenodo.22895198
+    license: CC-BY-4.0
+    authors:
+      - family-names: Wild
+        given-names: A.G.
+preferred-citation:
+  type: article
+  status: submitted
+  title: >-
+    Deep-learning instance segmentation and explainable rule-based
+    classification to resolve platelets, red blood cells and aggregates in
+    imaging flow cytometry
+  journal: Scientific Reports
+  authors:
+    - family-names: Wild
+      given-names: A.G.
+      affiliation: Institute for Biomedical Engineering, Stellenbosch University
+    - family-names: Venter
+      given-names: C.
+      affiliation: Department of Physiological Sciences, Stellenbosch University
+    - family-names: Perold
+      given-names: W.J.
+      affiliation: Department of Electrical and Electronic Engineering, Stellenbosch University
+    - family-names: Niesler
+      given-names: T.R.
+      affiliation: Department of Electrical and Electronic Engineering, Stellenbosch University
+    - family-names: Pretorius
+      given-names: E.
+      affiliation: Department of Physiological Sciences, Stellenbosch University

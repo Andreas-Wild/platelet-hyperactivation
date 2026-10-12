@@ -5,12 +5,9 @@ description = "Statistical analysis for the platelet hyperactivation imaging flo
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "h5py>=3.16.0",
-    "jinja2>=3.1.6",
     "matplotlib>=3.11.1",
     "numpy>=2.5.1",
     "pandas>=3.0.5",
-    "pillow>=12.3.0",
     "pyarrow>=25.0.0",
     "scipy>=1.18.0",
 ]
@@ -20,3 +17,9 @@ line-length = 88
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+# The scripts in src/ are run directly, not imported as a package; this lets
+# `pip install .` install the dependencies without installing src/ modules
+# under generic names such as `utils`.
+[tool.setuptools]
+py-modules = []
