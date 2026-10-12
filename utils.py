@@ -35,12 +35,14 @@ _POPULATION_LEVELS = ("irregular", *POPULATIONS)
 #: Platelet-activation markers, and the raw feature each is measured on.
 MARKERS = {"PAC1": "ch2_median_intensity", "CD62": "ch3_median_intensity"}
 
-#: 0.5 um/px at the magnification used, so one pixel is 0.25 um^2.
-UM2_PER_PX = 0.25
+#: The FlowSight's 20x objective gives a nominal 1 x 1 um pixel, so 1 px = 1 um^2.
+UM2_PER_PX = 1.0
 
 # --- Classifier thresholds (Methodology, "Data Analysis") --------------------
 NOISE_BF_STD = 8.0  # masks at or below this are background, not cells
-PLATELET_MAX_DIAMETER = 8.0  # px; 8 px = 4 um, the upper bound of platelet size
+# Size cuts lie between the median platelet mask (~5 px equivalent diameter) and
+# the median RBC mask (~9 px); brightfield masks are larger than the cells.
+PLATELET_MAX_DIAMETER = 8.0  # px
 PLATELET_MAX_MAJOR_AXIS = 7.0  # px; catches edge-on RBCs that look small by area
 MIN_RBC_SOLIDITY = 0.88
 MAX_RBC_ECCENTRICITY = 0.85
