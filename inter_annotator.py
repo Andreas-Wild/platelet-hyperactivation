@@ -2,16 +2,17 @@
 
 Two validation sets, both drawn from `new_method`:
 
-  * the 3000-image set labelled by annotator 1 alone, scored here only for the
-    Wilson interval of its agreement;
-  * the 50-image panel labelled independently by five annotators, scored in
-    full: agreement and Cohen's kappa for every pair of raters, Fleiss' kappa
-    with and without the classifier as a sixth rater, and the classifier
-    against the human majority consensus.
+  * the 3000-image set labelled by annotator 1 alone: agreement with its Wilson
+    interval, Cohen's kappa and macro-averaged precision, recall and F1;
+  * the 50-image panel labelled independently by five annotators: agreement and
+    Cohen's kappa for every pair of raters, Fleiss' kappa with and without the
+    classifier as a sixth rater, and the classifier against the human majority
+    consensus.
 
     uv run inter_annotator.py
 
-Prints the scores and writes them to `output/hand_labels/validation/scores.txt`.
+Reads the labels in `validation/`. Prints the scores and writes them to
+`output/validation_scores.txt`.
 """
 
 from __future__ import annotations
@@ -31,8 +32,9 @@ CLASSES = ("platelet", "rbc", "aggregate")
 BLANK = "unlabelled"
 CATEGORIES = (*CLASSES, BLANK)
 
-HAND_LABELS = utils.ROOT / "output" / "hand_labels"
-PANEL_DIR = HAND_LABELS / "validation"
+VALIDATION_DIR = utils.ROOT / "validation"
+HAND_LABELS = VALIDATION_DIR / "labelled_3000"
+PANEL_DIR = VALIDATION_DIR / "panel_50"
 #: Annotator N's answers are in `answers/annotator_N.csv`. Annotator 1 also
 #: labelled the 3000-image set.
 ANNOTATORS = tuple(f"annotator_{i}" for i in range(1, 6))
@@ -120,6 +122,12 @@ def report() -> None:
     print(f"labelled {n} of {len(key)} drawn; {len(key) - n} judged not a valid event")
     print(f"agreement {agree}/{n} = {agree / n:.1%}", end="  ")
     print(f"95% Wilson CI {low:.1%} to {high:.1%}")
+    print(f"Cohen's kappa {cohen_kappa(labels, model):.3f}")
+    macro = per_class(labels, model)[["precision", "recall", "f1"]].mean()
+    print(
+        f"macro-averaged precision {macro['precision']:.2f}, "
+        f"recall {macro['recall']:.2f}, F1 {macro['f1']:.2f}"
+    )
     print(
         f"agreement over all {len(key)}, unlabelled counted as errors: "
         f"{agree / len(key):.1%}\n"
@@ -182,4 +190,5 @@ if __name__ == "__main__":
         report()
     text = buffer.getvalue()
     print(text, end="")
-    (PANEL_DIR / "scores.txt").write_text(text)
+    (utils.ROOT / "output").mkdir(exist_ok=True)
+    (utils.ROOT / "output" / "validation_scores.txt").write_text(text)
